@@ -2,6 +2,18 @@ import itertools
 from .card import Card
 from .deck import Deck
 from .lookup import LookupTable
+cimport cython
+cimport libc.stdlib as stdlib
+
+cdef int prime_product_from_hand_cython(int *cards, int n):
+    cdef int product, c, i
+    i = 0
+    product = 1
+    while i < n:
+        c = cards[i]
+        product *= (c & 0xFF)
+        i += 1
+    return product
 
 class Evaluator(object):
     """
@@ -42,15 +54,28 @@ class Evaluator(object):
         Variant of Cactus Kev's 5 card evaluator, though I saved a lot of memory
         space using a hash table and condensing some of the calculations. 
         """
+        return self._five_cython(cards)
+
+    def _five_cython(self, py_cards):
+        cdef int *cards
+        cdef int i, prime, handOR
+
+        cards = <int *>stdlib.malloc(5 * cython.sizeof(int))
+        i = 0
+        while i < 5:
+            cards[i] = py_cards[i]
+            i = i + 1
         # if flush
         if cards[0] & cards[1] & cards[2] & cards[3] & cards[4] & 0xF000:
             handOR = (cards[0] | cards[1] | cards[2] | cards[3] | cards[4]) >> 16
             prime = Card.prime_product_from_rankbits(handOR)
+            stdlib.free(cards)
             return self.table.flush_lookup[prime]
 
         # otherwise
         else:
-            prime = Card.prime_product_from_hand(cards)
+            prime = prime_product_from_hand_cython(cards, 5)
+            stdlib.free(cards)
             return self.table.unsuited_lookup[prime]
 
     def _six(self, cards):
@@ -80,7 +105,6 @@ class Evaluator(object):
 
         all5cardcombobs = itertools.combinations(cards, 5)
         for combo in all5cardcombobs:
-            
             score = self._five(combo)
             if score < minimum:
                 minimum = score
