@@ -14,6 +14,16 @@ cdef int prime_product_from_hand_cython(int *cards, int n):
         product *= (c & 0xFF)
         i += 1
     return product
+cdef int prime_product_from_rankbits_cython(int rankbits):
+    cdef int product, i
+    product = 1
+    i = 0
+    while i < 13:
+        if rankbits & (1 << i):
+            product *= Card.PRIMES[i]
+        i += 1
+
+    return product
 
 class Evaluator(object):
     """
@@ -65,7 +75,7 @@ class Evaluator(object):
         # if flush
         if cards[0] & cards[1] & cards[2] & cards[3] & cards[4] & 0xF000:
             handOR = (cards[0] | cards[1] | cards[2] | cards[3] | cards[4]) >> 16
-            prime = Card.prime_product_from_rankbits(handOR)
+            prime = prime_product_from_rankbits_cython(handOR)
             stdlib.free(cards)
             return self.table.flush_lookup[prime]
 
