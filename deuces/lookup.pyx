@@ -1,7 +1,7 @@
 import itertools
 from .card import Card
 
-class LookupTable(object):
+cdef class LookupTable(object):
     """
     Number of Distinct Hand Values:
 
@@ -57,6 +57,9 @@ class LookupTable(object):
         8 : "Pair",
         9 : "High Card"
     }
+
+    cpdef public dict flush_lookup
+    cpdef public dict unsuited_lookup
 
     def __init__(self):
         """
