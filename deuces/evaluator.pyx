@@ -104,6 +104,22 @@ cdef class Evaluator(object):
 
         return minimum
 
+    cpdef int _five_cython(self, long p_cards):
+        #FIXME: Can't pass int*  Don't know the reason
+        cdef int *cards
+        cdef int prime, handOR
+
+        cards = <int *>p_cards
+        # if flush
+        if cards[0] & cards[1] & cards[2] & cards[3] & cards[4] & 0xF000:
+            handOR = (cards[0] | cards[1] | cards[2] | cards[3] | cards[4]) >> 16
+            prime = prime_product_from_rankbits_cython(handOR)
+            return self.table.flush_lookup[prime]
+        # otherwise
+        else:
+            prime = prime_product_from_hand_cython(cards, 5)
+            return self.table.unsuited_lookup[prime]
+
     def _seven(self, cards):
         """
         Performs five_card_eval() on all (7 choose 5) = 21 subsets
@@ -114,11 +130,20 @@ cdef class Evaluator(object):
         cdef int score
         minimum = self.table.MAX_HIGH_CARD
 
+        cdef int * p_cards
+        cdef int i
+        p_cards = <int *>stdlib.malloc(5 * cython.sizeof(int))
+
         all5cardcombobs = itertools.combinations(cards, 5)
         for combo in all5cardcombobs:
-            score = self._five(combo)
+            i = 0
+            while i < 5:
+                p_cards[i] = combo[i]
+                i = i + 1
+            score = self._five_cython(<long>p_cards)
             if score < minimum:
                 minimum = score
+        stdlib.free(p_cards)
 
         return minimum
 
