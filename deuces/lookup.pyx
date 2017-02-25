@@ -5,11 +5,11 @@ cdef class LookupTable(object):
     """
     Number of Distinct Hand Values:
 
-    Straight Flush   10 
+    Straight Flush   10
     Four of a Kind   156      [(13 choose 2) * (2 choose 1)]
     Full Houses      156      [(13 choose 2) * (2 choose 1)]
     Flush            1277     [(13 choose 5) - 10 straight flushes]
-    Straight         10 
+    Straight         10
     Three of a Kind  858      [(13 choose 3) * (3 choose 1)]
     Two Pair         858      [(13 choose 3) * (3 choose 2)]
     One Pair         2860     [(13 choose 4) * (4 choose 1)]
@@ -24,47 +24,58 @@ cdef class LookupTable(object):
     * Royal flush (best hand possible)          => 1
     * 7-5-4-3-2 unsuited (worst hand possible)  => 7462
     """
-    MAX_STRAIGHT_FLUSH  = 10
-    MAX_FOUR_OF_A_KIND  = 166
-    MAX_FULL_HOUSE      = 322 
-    MAX_FLUSH           = 1599
-    MAX_STRAIGHT        = 1609
-    MAX_THREE_OF_A_KIND = 2467
-    MAX_TWO_PAIR        = 3325
-    MAX_PAIR            = 6185
-    MAX_HIGH_CARD       = 7462
-
-    MAX_TO_RANK_CLASS = {
-        MAX_STRAIGHT_FLUSH: 1,
-        MAX_FOUR_OF_A_KIND: 2,
-        MAX_FULL_HOUSE: 3,
-        MAX_FLUSH: 4,
-        MAX_STRAIGHT: 5,
-        MAX_THREE_OF_A_KIND: 6,
-        MAX_TWO_PAIR: 7,
-        MAX_PAIR: 8,
-        MAX_HIGH_CARD: 9
-    }
-
-    RANK_CLASS_TO_STRING = {
-        1 : "Straight Flush",
-        2 : "Four of a Kind",
-        3 : "Full House",
-        4 : "Flush",
-        5 : "Straight",
-        6 : "Three of a Kind",
-        7 : "Two Pair",
-        8 : "Pair",
-        9 : "High Card"
-    }
+    cpdef public dict MAX_TO_RANK_CLASS
+    cpdef public dict RANK_CLASS_TO_STRING
 
     cpdef public dict flush_lookup
     cpdef public dict unsuited_lookup
 
+    cdef public int MAX_STRAIGHT_FLUSH
+    cdef public int MAX_FOUR_OF_A_KIND
+    cdef public int MAX_FULL_HOUSE
+    cdef public int MAX_FLUSH
+    cdef public int MAX_STRAIGHT
+    cdef public int MAX_THREE_OF_A_KIND
+    cdef public int MAX_TWO_PAIR
+    cdef public int MAX_PAIR
+    cdef public int MAX_HIGH_CARD
+
     def __init__(self):
-        """
-        Calculates lookup tables
-        """
+        self.MAX_STRAIGHT_FLUSH  = 10
+        self.MAX_FOUR_OF_A_KIND  = 166
+        self.MAX_FULL_HOUSE      = 322
+        self.MAX_FLUSH           = 1599
+        self.MAX_STRAIGHT        = 1609
+        self.MAX_THREE_OF_A_KIND = 2467
+        self.MAX_TWO_PAIR        = 3325
+        self.MAX_PAIR            = 6185
+        self.MAX_HIGH_CARD       = 7462
+
+        self.MAX_TO_RANK_CLASS = {
+            self.MAX_STRAIGHT_FLUSH: 1,
+            self.MAX_FOUR_OF_A_KIND: 2,
+            self.MAX_FULL_HOUSE: 3,
+            self.MAX_FLUSH: 4,
+            self.MAX_STRAIGHT: 5,
+            self.MAX_THREE_OF_A_KIND: 6,
+            self.MAX_TWO_PAIR: 7,
+            self.MAX_PAIR: 8,
+            self.MAX_HIGH_CARD: 9
+        }
+
+        self.RANK_CLASS_TO_STRING = {
+            1 : "Straight Flush",
+            2 : "Four of a Kind",
+            3 : "Full House",
+            4 : "Flush",
+            5 : "Straight",
+            6 : "Three of a Kind",
+            7 : "Two Pair",
+            8 : "Pair",
+            9 : "High Card"
+        }
+
+
         # create dictionaries
         self.flush_lookup = {}
         self.unsuited_lookup = {}
@@ -76,7 +87,7 @@ cdef class LookupTable(object):
 
     def flushes(self):
         """
-        Straight flushes and flushes. 
+        Straight flushes and flushes.
 
         Lookup is done on 13 bit integer (2^13 > 7462):
         xxxbbbbb bbbbbbbb => integer hand index
@@ -111,7 +122,7 @@ cdef class LookupTable(object):
             # straight flush, do not add it
             notSF = True
             for sf in straight_flushes:
-                # if f XOR sf == 0, then bit pattern 
+                # if f XOR sf == 0, then bit pattern
                 # is same, and we should not add
                 if not f ^ sf:
                     notSF = False
@@ -135,7 +146,7 @@ cdef class LookupTable(object):
 
         # we start the counting for flushes on max full house, which
         # is the worst rank that a full house can have (2,2,2,3,3)
-        rank = LookupTable.MAX_FULL_HOUSE + 1
+        rank = self.MAX_FULL_HOUSE + 1
         for f in flushes:
             prime_product = Card.prime_product_from_rankbits(f)
             self.flush_lookup[prime_product] = rank
@@ -143,23 +154,23 @@ cdef class LookupTable(object):
 
         # we can reuse these bit sequences for straights
         # and high cards since they are inherently related
-        # and differ only by context 
+        # and differ only by context
         self.straight_and_highcards(straight_flushes, flushes)
 
     def straight_and_highcards(self, straights, highcards):
         """
-        Unique five card sets. Straights and highcards. 
+        Unique five card sets. Straights and highcards.
 
         Reuses bit sequences from flush calculations.
         """
-        rank = LookupTable.MAX_FLUSH + 1
+        rank = self.MAX_FLUSH + 1
 
         for s in straights:
             prime_product = Card.prime_product_from_rankbits(s)
             self.unsuited_lookup[prime_product] = rank
             rank += 1
 
-        rank = LookupTable.MAX_PAIR + 1
+        rank = self.MAX_PAIR + 1
         for h in highcards:
             prime_product = Card.prime_product_from_rankbits(h)
             self.unsuited_lookup[prime_product] = rank
@@ -172,7 +183,7 @@ cdef class LookupTable(object):
         backwards_ranks = list(range(len(Card.INT_RANKS) - 1, -1, -1))
 
         # 1) Four of a Kind
-        rank = LookupTable.MAX_STRAIGHT_FLUSH + 1
+        rank = self.MAX_STRAIGHT_FLUSH + 1
 
         # for each choice of a set of four rank
         for i in backwards_ranks:
@@ -184,9 +195,9 @@ cdef class LookupTable(object):
                 product = Card.PRIMES[i]**4 * Card.PRIMES[k]
                 self.unsuited_lookup[product] = rank
                 rank += 1
-        
+
         # 2) Full House
-        rank = LookupTable.MAX_FOUR_OF_A_KIND + 1
+        rank = self.MAX_FOUR_OF_A_KIND + 1
 
         # for each three of a kind
         for i in backwards_ranks:
@@ -200,7 +211,7 @@ cdef class LookupTable(object):
                 rank += 1
 
         # 3) Three of a Kind
-        rank = LookupTable.MAX_STRAIGHT + 1
+        rank = self.MAX_STRAIGHT + 1
 
         # pick three of one rank
         for r in backwards_ranks:
@@ -217,7 +228,7 @@ cdef class LookupTable(object):
                 rank += 1
 
         # 4) Two Pair
-        rank = LookupTable.MAX_THREE_OF_A_KIND + 1
+        rank = self.MAX_THREE_OF_A_KIND + 1
 
         tpgen = itertools.combinations(backwards_ranks, 2)
         for tp in tpgen:
@@ -233,7 +244,7 @@ cdef class LookupTable(object):
                 rank += 1
 
         # 5) Pair
-        rank = LookupTable.MAX_TWO_PAIR + 1
+        rank = self.MAX_TWO_PAIR + 1
 
         # choose a pair
         for pairrank in backwards_ranks:
@@ -263,13 +274,13 @@ cdef class LookupTable(object):
         Bit hack from here:
         http://www-graphics.stanford.edu/~seander/bithacks.html#NextBitPermutation
 
-        Generator even does this in poker order rank 
+        Generator even does this in poker order rank
         so no need to sort when done! Perfect.
         """
-        t = (bits | (bits - 1)) + 1 
-        next = t | ((((t & -t) // (bits & -bits)) >> 1) - 1)  
+        t = (bits | (bits - 1)) + 1
+        next = t | ((((t & -t) // (bits & -bits)) >> 1) - 1)
         yield next
         while True:
-            t = (next | (next - 1)) + 1 
+            t = (next | (next - 1)) + 1
             next = t | ((((t & -t) // (next & -next)) >> 1) - 1)
             yield next
