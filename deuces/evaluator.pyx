@@ -46,7 +46,7 @@ class Evaluator(object):
         all_cards = cards + board
         return self.hand_size_map[len(all_cards)](all_cards)
 
-    def _five(self, cards):
+    def _five(self, py_cards):
         """
         Performs an evalution given cards in integer form, mapping them to
         a rank in the range [1, 7462], with lower ranks being more powerful.
@@ -54,9 +54,6 @@ class Evaluator(object):
         Variant of Cactus Kev's 5 card evaluator, though I saved a lot of memory
         space using a hash table and condensing some of the calculations. 
         """
-        return self._five_cython(cards)
-
-    def _five_cython(self, py_cards):
         cdef int *cards
         cdef int i, prime, handOR
 
