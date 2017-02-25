@@ -25,7 +25,7 @@ cdef int prime_product_from_rankbits_cython(int rankbits):
 
     return product
 
-class Evaluator(object):
+cdef class Evaluator(object):
     """
     Evaluates hand strengths using a variant of Cactus Kev's algorithm:
     http://suffe.cool/poker/evaluator.html
@@ -35,6 +35,8 @@ class Evaluator(object):
     consequent evaluations are very fast. Won't beat C, but very fast as 
     all calculations are done with bit arithmetic and table lookups. 
     """
+    cdef object table
+    cdef dict hand_size_map
 
     def __init__(self):
 
@@ -108,6 +110,8 @@ class Evaluator(object):
         of 5 cards in the set of 7 to determine the best ranking, 
         and returns this ranking.
         """
+        cdef int minimum
+        cdef int score
         minimum = self.table.MAX_HIGH_CARD
 
         all5cardcombobs = itertools.combinations(cards, 5)
