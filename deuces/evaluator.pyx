@@ -1,3 +1,4 @@
+# cython: profile=True
 import itertools
 from .card import Card
 from .deck import Deck
@@ -134,7 +135,10 @@ cdef class Evaluator(object):
         cdef int i
         p_cards = <int *>stdlib.malloc(5 * cython.sizeof(int))
 
-        all5cardcombobs = itertools.combinations(cards, 5)
+        cdef tuple all5cardcombobs
+        cdef tuple combo
+
+        all5cardcombobs = tuple(itertools.combinations(cards, 5))
         for combo in all5cardcombobs:
             i = 0
             while i < 5:
