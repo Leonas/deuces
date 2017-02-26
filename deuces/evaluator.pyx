@@ -3,6 +3,7 @@ import itertools
 from .card import Card
 from .deck import Deck
 from .lookup import LookupTable
+from magic_numbers cimport *
 cimport cython
 cimport libc.stdlib as stdlib
 
@@ -94,7 +95,7 @@ cdef class Evaluator(object):
         of 5 cards in the set of 6 to determine the best ranking, 
         and returns this ranking.
         """
-        minimum = self.table.MAX_HIGH_CARD
+        minimum = MAX_VALUE.MAX_HIGH_CARD
 
         all5cardcombobs = itertools.combinations(cards, 5)
         for combo in all5cardcombobs:
@@ -129,7 +130,7 @@ cdef class Evaluator(object):
         """
         cdef int minimum
         cdef int score
-        minimum = self.table.MAX_HIGH_CARD
+        minimum = MAX_VALUE.MAX_HIGH_CARD
 
         cdef int * p_cards
         cdef int i
@@ -151,29 +152,29 @@ cdef class Evaluator(object):
 
         return minimum
 
-    def get_rank_class(self, hr):
+    def get_rank_class(self, int hr):
         """
         Returns the class of hand given the hand hand_rank
         returned from evaluate. 
         """
-        if hr >= 0 and hr <= self.table.MAX_STRAIGHT_FLUSH:
-            return self.table.MAX_TO_RANK_CLASS[self.table.MAX_STRAIGHT_FLUSH]
-        elif hr <= self.table.MAX_FOUR_OF_A_KIND:
-            return self.table.MAX_TO_RANK_CLASS[self.table.MAX_FOUR_OF_A_KIND]
-        elif hr <= self.table.MAX_FULL_HOUSE:
-            return self.table.MAX_TO_RANK_CLASS[self.table.MAX_FULL_HOUSE]
-        elif hr <= self.table.MAX_FLUSH:
-            return self.table.MAX_TO_RANK_CLASS[self.table.MAX_FLUSH]
-        elif hr <= self.table.MAX_STRAIGHT:
-            return self.table.MAX_TO_RANK_CLASS[self.table.MAX_STRAIGHT]
-        elif hr <= self.table.MAX_THREE_OF_A_KIND:
-            return self.table.MAX_TO_RANK_CLASS[self.table.MAX_THREE_OF_A_KIND]
-        elif hr <= self.table.MAX_TWO_PAIR:
-            return self.table.MAX_TO_RANK_CLASS[self.table.MAX_TWO_PAIR]
-        elif hr <= self.table.MAX_PAIR:
-            return self.table.MAX_TO_RANK_CLASS[self.table.MAX_PAIR]
-        elif hr <= self.table.MAX_HIGH_CARD:
-            return self.table.MAX_TO_RANK_CLASS[self.table.MAX_HIGH_CARD]
+        if hr >= 0 and hr <= MAX_VALUE.MAX_STRAIGHT_FLUSH:
+            return self.table.MAX_TO_RANK_CLASS[MAX_VALUE.MAX_STRAIGHT_FLUSH]
+        elif hr <= MAX_VALUE.MAX_FOUR_OF_A_KIND:
+            return self.table.MAX_TO_RANK_CLASS[MAX_VALUE.MAX_FOUR_OF_A_KIND]
+        elif hr <= MAX_VALUE.MAX_FULL_HOUSE:
+            return self.table.MAX_TO_RANK_CLASS[MAX_VALUE.MAX_FULL_HOUSE]
+        elif hr <= MAX_VALUE.MAX_FLUSH:
+            return self.table.MAX_TO_RANK_CLASS[MAX_VALUE.MAX_FLUSH]
+        elif hr <= MAX_VALUE.MAX_STRAIGHT:
+            return self.table.MAX_TO_RANK_CLASS[MAX_VALUE.MAX_STRAIGHT]
+        elif hr <= MAX_VALUE.MAX_THREE_OF_A_KIND:
+            return self.table.MAX_TO_RANK_CLASS[MAX_VALUE.MAX_THREE_OF_A_KIND]
+        elif hr <= MAX_VALUE.MAX_TWO_PAIR:
+            return self.table.MAX_TO_RANK_CLASS[MAX_VALUE.MAX_TWO_PAIR]
+        elif hr <= MAX_VALUE.MAX_PAIR:
+            return self.table.MAX_TO_RANK_CLASS[MAX_VALUE.MAX_PAIR]
+        elif hr <= MAX_VALUE.MAX_HIGH_CARD:
+            return self.table.MAX_TO_RANK_CLASS[MAX_VALUE.MAX_HIGH_CARD]
         else:
             raise Exception("Inavlid hand rank, cannot return rank class")
 
@@ -187,7 +188,7 @@ cdef class Evaluator(object):
         """
         Scales the hand rank score to the [0.0, 1.0] range.
         """
-        return float(hand_rank) / float(self.table.MAX_HIGH_CARD)
+        return float(hand_rank) / float(MAX_VALUE.MAX_HIGH_CARD)
 
     def hand_summary(self, board, hands):
         """
