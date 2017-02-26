@@ -7,6 +7,8 @@ from magic_numbers cimport *
 cimport cython
 cimport libc.stdlib as stdlib
 
+cdef int * _PRIMES_13
+
 cdef int prime_product_from_hand_cython(int *cards, int n):
     cdef int product, c, i
     i = 0
@@ -16,13 +18,23 @@ cdef int prime_product_from_hand_cython(int *cards, int n):
         product *= (c & 0xFF)
         i += 1
     return product
+
+cdef void _init_primes():
+    global _PRIMES_13
+    _PRIMES_13 = <int *> stdlib.malloc(13 * cython.sizeof(int) )
+    for i in range(13):
+        _PRIMES_13[i] = Card.PRIMES[i]
+
 cdef int prime_product_from_rankbits_cython(int rankbits):
     cdef int product, i
     product = 1
     i = 0
+    global _PRIMES_13
+    if(<long>_PRIMES_13 == 0):
+        _init_primes()
     while i < 13:
         if rankbits & (1 << i):
-            product *= Card.PRIMES[i]
+            product *= _PRIMES_13[i]
         i += 1
 
     return product
