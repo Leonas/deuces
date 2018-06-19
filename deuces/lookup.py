@@ -259,16 +259,24 @@ class LookupTable(object):
 
     def get_lexographically_next_bit_sequence(self, bits):
         """
-        Bit hack from here:
-        http://www-graphics.stanford.edu/~seander/bithacks.html#NextBitPermutation
-
-        Generator even does this in poker order rank 
-        so no need to sort when done! Perfect.
+        This will compute the next permutation: 
+        Suppose we have a pattern of N bits set to 1 in an integer and we want the next permutation of N 1 bits in lexicographical order. 
+        For example, if N is 3 and the bit pattern is 00010011, the next patterns would be 00010101, 00010110, 00011001,00011010, 00011100, 00100011, and so forth. 
         """
+       
+#    x | y Each bit of the output is 0 if the corresponding bit of x AND of y is 0, otherwise it's 1.
+#    x & y Each bit of the output is 1 if the corresponding bit of x AND of y is 1, otherwise it's 0.
+#    x >> y  Returns x with the bits shifted to the right by y places. Same as x // 2**y
+
         t = int((bits | (bits - 1))) + 1
-        next = t | ((int(((t & -t) / (bits & -bits))) >> 1) - 1)
-        yield next
+        
+        next_bits = t | ((int(((t & -t) / (bits & -bits))) >> 1) - 1)
+        
+        yield next_bits
+        
         while True:
-            t = (next | (next - 1)) + 1 
-            next = t | ((((t & -t) // (next & -next)) >> 1) - 1)
-            yield next
+            t = (next_bits | (next_bits - 1)) + 1 
+            
+            next_bits = t | ((((t & -t) // (next_bits & -next_bits)) >> 1) - 1)
+            
+            yield next_bits
